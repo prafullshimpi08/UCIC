@@ -105,5 +105,13 @@ module.exports = (sequelize, DataTypes) => {
     }
   );
 
+  Company.associate = (models) => {
+   Company.hasMany(models.company_subscription, {
+  foreignKey: "company_id",
+  as: "assignedSubscriptions",
+});
+  };
+
+
   return Company;
-};
+}

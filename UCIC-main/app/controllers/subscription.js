@@ -121,13 +121,112 @@ const deleteSubscriptionPlan = async (req, res) => {
   }
 };
 
+const getSubscriptionList = async (req, res) => {
+  try {
+    const result = await subscriptionService.getSubscriptionList(req.query);
 
+    if (result.error) {
+      return response.error(
+        req,
+        res,
+        { msgCode: result.msgCode },
+        result.status || 500
+      );
+    }
+
+    return response.success(
+      req,
+      res,
+      {
+        msgCode: result.msgCode,
+        data: result.data
+      },
+      result.status || 200
+    );
+  } catch (err) {
+    console.error("GET SUBSCRIPTION LIST ERROR >>>", err);
+    return response.error(
+      req,
+      res,
+      { msgCode: "SUBSCRIPTION_LIST_FETCH_FAILED", data: err },
+      500
+    );
+  }
+};
+
+
+const assignSubscription = async (req, res) => {
+  const transaction = await db.transaction();
+
+  try {
+    const result = await subscriptionService.assignSubscriptionPlan(req.body, transaction);
+
+    if (result.error) throw result;
+
+    await transaction.commit();
+
+    return response.success(
+      req,
+      res,
+      { msgCode: result.msgCode, data: result.data },
+      200
+    );
+  } catch (err) {
+    await transaction.rollback();
+
+    console.error("ASSIGN SUBSCRIPTION ERROR >>>", err);
+
+    return response.error(
+      req,
+      res,
+      { msgCode: err.msgCode || "SUBSCRIPTION_ASSIGN_FAILED", data: err.data || null },
+      err.status || 500
+    );
+  }
+};
+
+const getAssignedSubscriptionList = async (req, res) => {
+  try {
+    const result = await subscriptionService.getAssignedSubscriptionList(req.query);
+
+    if (result.error) {
+      return response.error(
+        req,
+        res,
+        { msgCode: result.msgCode },
+        result.status || 500
+      );
+    }
+
+    return response.success(
+      req,
+      res,
+      {
+        msgCode: result.msgCode,
+        data: result.data
+      },
+      result.status || 200
+    );
+  } catch (error) {
+    console.error("GET ASSIGNED SUBSCRIPTION LIST ERROR >>>", error);
+    return response.error(
+      req,
+      res,
+      { msgCode: "ASSIGNED_SUBSCRIPTION_LIST_FETCH_FAILED", data: error },
+      500
+    );
+  }
+};
 
 
 
 module.exports = {
   createSubscriptionPlan,
     updateSubscriptionPlan,
-    deleteSubscriptionPlan
+    deleteSubscriptionPlan,
+    getSubscriptionList,
+    assignSubscription,
+    getAssignedSubscriptionList
+
 
 };

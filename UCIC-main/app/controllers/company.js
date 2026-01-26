@@ -79,11 +79,16 @@ const updateCompanyContactDetails = async (req, res) => {
 
 
 
+
+
+
 // console.log(db,"////////");
 
 
 module.exports = {
   createCompany,
- updateCompanyContactDetails
+ updateCompanyContactDetails,
+  
+
 
 }

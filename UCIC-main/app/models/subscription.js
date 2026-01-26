@@ -76,5 +76,14 @@ module.exports = (sequelize, DataTypes) => {
     }
   );
 
+  SubscriptionPlan.associate = (models) => {
+  SubscriptionPlan.hasMany(models.company_subscription, {   
+    foreignKey: "subscription_plan_id",
+    as: "assignedCompanies",
+  });
+};
+
+
+
   return SubscriptionPlan;
 };
