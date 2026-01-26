@@ -93,7 +93,12 @@ module.exports = (sequelize, DataTypes) => {
       },
 
       phone_no: {
-        type: DataTypes.STRING, // phone number STRING hi hona chahiye
+        type: DataTypes.STRING, 
+        allowNull: true
+      },
+
+      is_blocked: {
+        type: DataTypes.BOOLEAN,
         allowNull: true
       }
     },

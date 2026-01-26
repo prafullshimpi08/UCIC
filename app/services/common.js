@@ -74,7 +74,7 @@ const bulkCreate = async (model, content, transaction) => {
 const updateData = async (model, data, condition, transaction) => {
     try {
         console.log('condition', condition);
-        const result = await model.update(data, { where: condition }, { transaction });
+        const result = await model.update(data, { where: condition, transaction });
         return result ? result : false;
     } catch (error) {
         console.log('errrror>>>>>>>', error);
@@ -104,12 +104,16 @@ const findByCondition = async (model, condition, attributes, order) => {
 
 const deleteQuery = async (model, condition, transaction, force = false) => {
     try {
-        const data = await model.destroy(
-            { where: condition, force: force },
-            { transaction }
-        )
-        return data ? JSON.parse(JSON.stringify(data)) : false
+        const data = await model.destroy({
+            where: condition,
+            force: force,
+            transaction
+        });
+        // model.destroy() returns the number of affected rows.
+        // We return this number directly.
+        return data;
     } catch (error) {
+        console.error('Delete Error >>>>>>>', error);
         return false
     }
 }
