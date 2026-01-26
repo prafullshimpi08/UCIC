@@ -1,6 +1,7 @@
 const db = require('../../models').sequelize;
 const httpStatus = require('http-status');
 const { Op } = require("sequelize");
+const { toIntBoolean } = require('../../utils/helper');
 // const { commonService } = require('shared-services');
 // const { LOAN_APPLICATION_ID, APPLICANT_TYPE, LEAD_STATUS, PROSPECT_STATUS, EMPANELMENT_DOCTYPES } = require('../../constant/constant');
 // const { generateApplicationId } = require('../../utils/helper');
@@ -147,10 +148,199 @@ const getCompanyList = async (queryParams) => {
   }
 };
 
+const createSubscriptionPlan = async (body, loginDetails, transaction) => {
+  try {
+    const SubscriptionPlan = db.models.subscription_plan;
+
+    const rawFeatures = body.features || {};
+
+    const subscriptionPayload = {
+      plan_name: body.planName,
+      monthly_price: body.monthlyPrice,
+      records_per_month: body.recordsPerMonth,
+      aum_limit_cr: body.aumLimitCr,
+      number_of_users: body.numberOfUsers,
+      support_level: body.supportLevel,
+
+      // ✅ FIXED: 0/1/true/false 
+      sso_support: toIntBoolean(rawFeatures.ssoSupport),
+  api_access: toIntBoolean(rawFeatures.apiAccess),
+  custom_reports: toIntBoolean(rawFeatures.customReports),
+  phone_support: toIntBoolean(rawFeatures.phoneSupport),
+  dedicated_account_manager: toIntBoolean(rawFeatures.dedicatedAccountManager),
+
+      status: body.status || 'ACTIVE'
+      // created_by: loginDetails.userId 
+    };
+
+    const subscription = await commonService.create(
+      SubscriptionPlan,
+      subscriptionPayload,
+      transaction
+    );
+
+    if (!subscription) {
+      return {
+        error: true,
+        msgCode: 'SUBSCRIPTION_NOT_CREATED',
+        status: httpStatus.SERVICE_UNAVAILABLE
+      };
+    }
+
+    return {
+      error: false,
+      msgCode: 'SUBSCRIPTION_CREATED_SUCCESSFULLY',
+      data: subscription,
+      status: httpStatus.CREATED
+    };
+
+  } catch (err) {
+    console.error('🚀 createSubscriptionPlan error:', err);
+
+    return {
+      error: true,
+      msgCode: 'SUBSCRIPTION_CREATE_FAILED',
+      status: httpStatus.INTERNAL_SERVER_ERROR
+    };
+  }
+};
+
+const getSubscriptionList = async (queryParams) => {
+  try {
+    const SubscriptionPlan = db.models.subscription_plan;
+    const { page = 1, limit = 10, search } = queryParams;
+    const offset = (page - 1) * limit;
+
+    let condition = {};
+    if (search) {
+      condition = {
+        [Op.or]: [
+          { plan_name: { [Op.like]: `%${search}%` } },
+          { support_level: { [Op.like]: `%${search}%` } }
+        ]
+      };
+    }
+
+    const attributes = undefined; 
+    const order = [['createdAt', 'DESC']];
+
+    const list = await commonService.getList(
+      SubscriptionPlan,
+      condition,
+      attributes,
+      parseInt(limit),
+      offset,
+      order
+    );
+
+    return {
+      error: false,
+      msgCode: "SUBSCRIPTION_LIST_FETCHED_SUCCESSFULLY",
+      data: list || { count: 0, rows: [] },
+      status: httpStatus.OK
+    };
+  } catch (err) {
+    console.error("🚀 getSubscriptionList error:", err);
+    return {
+      error: true,
+      msgCode: "SUBSCRIPTION_LIST_FETCH_FAILED",
+      status: httpStatus.INTERNAL_SERVER_ERROR
+    };
+  }
+};
+
+const assignSubscriptionPlan = async (body, transaction) => {
+  try {
+    const Company = db.models.company;
+    const SubscriptionPlan = db.models.subscription_plan;
+    const CompanySubscription = db.models.company_subscription;
+
+    const { companyId, subscriptionPlanId, status } = body;
+
+    const company = await Company.findByPk(companyId, { transaction });
+    if (!company) throw { msgCode: "COMPANY_NOT_FOUND" };
+
+    const subscriptionPlan = await SubscriptionPlan.findByPk(subscriptionPlanId, { transaction });
+    if (!subscriptionPlan) throw { msgCode: "SUBSCRIPTION_NOT_FOUND" };
+
+    const alreadyAssigned = await CompanySubscription.findOne({
+      where: { company_id: companyId, subscription_plan_id: subscriptionPlanId },
+      transaction
+    });
+
+    if (alreadyAssigned) throw { msgCode: "SUBSCRIPTION_ALREADY_ASSIGNED" };
+
+    const assign = await commonService.create(CompanySubscription, {
+      company_id: companyId,
+      subscription_plan_id: subscriptionPlanId,
+      status: status || "ACTIVE"
+    }, transaction);
+
+    if (!assign) throw { msgCode: "SUBSCRIPTION_ASSIGN_FAILED" };
+
+    return { error: false, msgCode: "SUBSCRIPTION_ASSIGNED_SUCCESSFULLY", data: assign };
+  } catch (err) {
+    console.error("assignSubscriptionPlan error:", err);
+    return { error: true, msgCode: err.msgCode || "SUBSCRIPTION_ASSIGN_FAILED" };
+  }
+};
+
+const getAssignedSubscriptionList = async (queryParams) => {
+  try {
+    const { page = 1, limit = 10 } = queryParams;
+    const offset = (page - 1) * limit;
+
+    const CompanySubscription = db.models.company_subscription;
+    const Company = db.models.company;
+    const SubscriptionPlan = db.models.subscription_plan;
+
+    if (!CompanySubscription) {
+      throw new Error("company_subscription model not found");
+    }
+
+    const list = await CompanySubscription.findAndCountAll({
+      limit: parseInt(limit),
+      offset,
+      order: [["createdAt", "DESC"]],
+      include: [
+        {
+          model: Company,
+          as: "company",
+          attributes: ["legal_company_name"]
+        },
+        {
+          model: SubscriptionPlan,
+          as: "subscriptionPlan",
+          attributes: ["plan_name"]
+        }
+      ]
+    });
+
+    return {
+      error: false,
+      msgCode: "ASSIGNED_SUBSCRIPTION_LIST_FETCHED_SUCCESSFULLY",
+      data: list,
+      status: 200
+    };
+  } catch (error) {
+    console.error("getAssignedSubscriptionList error:", error);
+    return {
+      error: true,
+      msgCode: "ASSIGNED_SUBSCRIPTION_LIST_FETCH_FAILED",
+      status: 500
+    };
+  }
+};
+
 module.exports = {
     createCompany,
     updateCompany,
     deleteCompany,
     blockUnblockCompany,
-    getCompanyList
+    getCompanyList,
+    createSubscriptionPlan,
+    getSubscriptionList,
+    assignSubscriptionPlan,
+    getAssignedSubscriptionList
+
 }
