@@ -11,6 +11,7 @@ const app = require('express')();
 // app.use('/apply-loan', require('./common'));
 app.use('/crm', require('./crm/crm'));
 app.use('/company', require('./company/company'));
+app.use('/subscription', require('./company/subscription'));
 
 
 module.exports = app
