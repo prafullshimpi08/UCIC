@@ -17,6 +17,39 @@ const createCompany = async (body, loginDetails, transaction) => {
 
     const Company = db.models.company; 
 
+    if (body.id) {
+      const updatePayload = {
+        legal_company_name: body.legalCompanyName,
+        trade_name: body.tradeName,
+        cin: body.cin,
+        pan: body.pan,
+        address: body.address,
+        country: body.country,
+        industry_type: body.industryType,
+      };
+
+      // Remove undefined keys
+      Object.keys(updatePayload).forEach(key => updatePayload[key] === undefined && delete updatePayload[key]);
+
+      const query = { id: body.id };
+
+      // Check PAN uniqueness if provided (excluding current record)
+      if (body.pan) {
+        const existingWithPan = await commonService.findByCondition(Company, { pan: body.pan, id: { [Op.ne]: body.id } });
+        if (existingWithPan) {
+          return { error: true, msgCode: "COMPANY_WITH_PAN_EXISTS", status: httpStatus.CONFLICT };
+        }
+      }
+
+      const updated = await commonService.updateData(Company, updatePayload, query, transaction);
+
+      if (!updated || updated[0] === 0) {
+        return { error: true, msgCode: "COMPANY_NOT_FOUND", status: httpStatus.NOT_FOUND };
+      }
+      const updatedCompany = await Company.findByPk(body.id, { transaction });
+      return { error: false, msgCode: "COMPANY_UPDATED_SUCCESSFULLY", data: updatedCompany, status: httpStatus.OK };
+    }
+
     if (body.pan) {
       const existingCompany = await commonService.findByCondition(Company, { pan: body.pan });
       if (existingCompany) {

@@ -10,7 +10,9 @@ const createCompany = Joi.object({
     pan: Joi.string().optional().allow(null, ''),
     address: Joi.string().optional().allow(null, ''),
     country: Joi.string().optional().allow(null, ''),
-    industryType: Joi.string().optional().allow(null, '')
+    industryType: Joi.string().optional().allow(null, ''),
+    id: Joi.number().integer().optional().allow(null, '')
+
 });
 
 const updateContactDetails = Joi.object({
