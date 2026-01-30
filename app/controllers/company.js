@@ -256,9 +256,38 @@ const blockUnblockCompany = async (req, res) => {
   }
 };
 
+const updateCompanyProfileStatus = async (req, res) => {
+  const transaction = await db.transaction();
+  try {
+    const { companyId, isCompanyProfileCompleted } = req.body;
+
+    if (!companyId) {
+      throw { msgCode: "COMPANY_ID_REQUIRED", status: 400 };
+    }
+    if (typeof isCompanyProfileCompleted !== 'boolean') {
+        throw { msgCode: "IS_COMPLETED_BOOLEAN_REQUIRED", status: 400 };
+    }
+
+    const result = await companyService.updateCompanyProfileStatus(companyId, isCompanyProfileCompleted, transaction);
+
+    if (result.error) {
+      await transaction.rollback();
+      return response.error(req, res, { msgCode: result.msgCode, data: result.data }, result.status || 500);
+    }
+    await transaction.commit();
+
+    return response.success(req, res, { msgCode: result.msgCode, data: result.data }, result.status || 200);
+  } catch (err) {
+    // Ensure rollback is only called on an active transaction
+    if (transaction && !transaction.finished) await transaction.rollback();
+    console.error("UPDATE PROFILE STATUS ERROR >>>", err);
+    return response.error(req, res, { msgCode: err.msgCode || "COMPANY_PROFILE_STATUS_UPDATE_FAILED", data: err.data || null }, err.status || 500);
+  }
+};
+
 const getCompanyList = async (req, res) => {
   try {
-    const result = await companyService.getCompanyList(req.query);
+    const result = await companyService.getCompanyList({ ...req.query, ...req.params });
 
     if (result.error) {
       return response.error(req, res, { msgCode: result.msgCode }, result.status || 500);
@@ -273,6 +302,10 @@ const getCompanyList = async (req, res) => {
 
 
 
+
+
+
+
 // console.log(db,"////////");
 
 module.exports = {
@@ -282,5 +315,6 @@ module.exports = {
   updateCompany,
   deleteCompany,
   blockUnblockCompany,
+  updateCompanyProfileStatus,
   getCompanyList
 }

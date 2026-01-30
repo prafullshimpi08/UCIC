@@ -165,12 +165,7 @@ const assignSubscription = async (req, res) => {
 
     await transaction.commit();
 
-    return response.success(
-      req,
-      res,
-      { msgCode: result.msgCode, data: result.data },
-      200
-    );
+    return response.success(req,res,{ msgCode: result.msgCode, data: result.data },200);
   } catch (err) {
     await transaction.rollback();
 

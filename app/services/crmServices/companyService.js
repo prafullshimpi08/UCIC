@@ -16,6 +16,18 @@ const createCompany = async (body, loginDetails, transaction) => {
     // const { Company } = db.models;
 
     const Company = db.models.company; 
+
+    if (body.pan) {
+      const existingCompany = await commonService.findByCondition(Company, { pan: body.pan });
+      if (existingCompany) {
+        return {
+          error: true,
+          msgCode: "COMPANY_WITH_PAN_EXISTS",
+          status: httpStatus.CONFLICT
+        };
+      }
+    }
+
     const companyPayload = {
       legal_company_name: body.legalCompanyName,
       trade_name: body.tradeName,
@@ -114,11 +126,59 @@ const blockUnblockCompany = async (companyId, isBlocked, transaction) => {
   }
 };
 
+const updateCompanyProfileStatus = async (companyId, isCompanyProfileCompleted, transaction) => {
+  try {
+    const Company = db.models.company;
+    const query = { id: companyId };
+    const body = { is_company_profile_completed: isCompanyProfileCompleted };
+    const company = await commonService.updateData(Company, body, query, transaction);
+
+    if (!company || company[0] === 0) {
+      return {
+        error: true,
+        msgCode: "COMPANY_NOT_FOUND",
+        status: httpStatus.NOT_FOUND
+      };
+    }
+
+    return {
+      error: false,
+      msgCode: "COMPANY_PROFILE_STATUS_UPDATED",
+      // data: company,
+      data: { id: companyId, is_company_profile_completed: isCompanyProfileCompleted },
+      status: httpStatus.OK
+    };
+  } catch (err) {
+    console.error("🚀 updateCompanyProfileStatus error:", err);
+    return { error: true, msgCode: "COMPANY_PROFILE_STATUS_UPDATE_FAILED", status: httpStatus.INTERNAL_SERVER_ERROR };
+  }
+};
+
 const getCompanyList = async (queryParams) => {
   try {
     const Company = db.models.company;
-    const { page = 1, limit = 10, search } = queryParams;
+    const CompanyImage = db.models.company_image;
+    const { page = 1, limit = 10, search, id } = queryParams;
     const offset = (page - 1) * limit;
+
+    const includeOptions = [{
+      model: CompanyImage,
+      as: 'images',
+      attributes: ['id', 'image_url', 'image_type', 'public_id']
+    }];
+
+    if (id) {
+      const company = await Company.findOne({ where: { id }, include: includeOptions });
+      if (!company) {
+        return { error: true, msgCode: "COMPANY_NOT_FOUND", status: httpStatus.NOT_FOUND };
+      }
+      return {
+        error: false,
+        msgCode: "COMPANY_FETCHED_SUCCESSFULLY",
+        data: company,
+        status: httpStatus.OK
+      };
+    }
 
     let condition = {};
     if (search) {
@@ -131,10 +191,16 @@ const getCompanyList = async (queryParams) => {
       };
     }
 
-    const attributes = undefined; // Fetch all columns
     const order = [['createdAt', 'DESC']];
 
-    const list = await commonService.getList(Company, condition, attributes, parseInt(limit), offset, order);
+    const list = await Company.findAndCountAll({
+      where: condition,
+      limit: parseInt(limit),
+      offset: offset,
+      order: order,
+      include: includeOptions,
+      distinct: true
+    });
 
     return {
       error: false,
@@ -164,10 +230,10 @@ const createSubscriptionPlan = async (body, loginDetails, transaction) => {
 
       // ✅ FIXED: 0/1/true/false 
       sso_support: toIntBoolean(rawFeatures.ssoSupport),
-  api_access: toIntBoolean(rawFeatures.apiAccess),
-  custom_reports: toIntBoolean(rawFeatures.customReports),
-  phone_support: toIntBoolean(rawFeatures.phoneSupport),
-  dedicated_account_manager: toIntBoolean(rawFeatures.dedicatedAccountManager),
+      api_access: toIntBoolean(rawFeatures.apiAccess),  
+      custom_reports: toIntBoolean(rawFeatures.customReports),
+      phone_support: toIntBoolean(rawFeatures.phoneSupport),
+      dedicated_account_manager: toIntBoolean(rawFeatures.dedicatedAccountManager),
 
       status: body.status || 'ACTIVE'
       // created_by: loginDetails.userId 
@@ -337,6 +403,7 @@ module.exports = {
     updateCompany,
     deleteCompany,
     blockUnblockCompany,
+    updateCompanyProfileStatus,
     getCompanyList,
     createSubscriptionPlan,
     getSubscriptionList,

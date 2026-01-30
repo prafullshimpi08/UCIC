@@ -100,6 +100,11 @@ module.exports = (sequelize, DataTypes) => {
       is_blocked: {
         type: DataTypes.BOOLEAN,
         allowNull: true
+      },
+
+      is_company_profile_completed: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false
       }
     },
     {
@@ -109,6 +114,13 @@ module.exports = (sequelize, DataTypes) => {
       paranoid: true
     }
   );
+
+  Company.associate = (models) => {
+    Company.hasMany(models.company_image, {
+      foreignKey: "company_id",
+      as: "images"
+    });
+  };
 
   return Company;
 };
