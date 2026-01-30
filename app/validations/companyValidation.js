@@ -82,6 +82,16 @@ const updateProfileStatus = Joi.object({
     })
 });
 
+const updateCompanyStatus = Joi.object({
+    companyId: Joi.number().integer().required().messages({
+        'any.required': 'Company ID is required'
+    }),
+    companyStatus: Joi.string().required().messages({
+        'any.required': 'Company Status is required',
+        'string.empty': 'Company Status cannot be empty'
+    })
+});
+
 module.exports = {
     createCompany,
     updateContactDetails,
@@ -89,5 +99,6 @@ module.exports = {
     updateCompany,
     deleteCompany,
     blockUnblockCompany,
-    updateProfileStatus
+    updateProfileStatus,
+    updateCompanyStatus
 };

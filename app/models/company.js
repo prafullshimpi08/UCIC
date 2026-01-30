@@ -105,6 +105,11 @@ module.exports = (sequelize, DataTypes) => {
       is_company_profile_completed: {
         type: DataTypes.BOOLEAN,
         defaultValue: false
+      },
+
+      company_status: {
+        type: DataTypes.STRING,
+        defaultValue: "Pending"
       }
     },
     {

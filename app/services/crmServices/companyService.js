@@ -187,6 +187,33 @@ const updateCompanyProfileStatus = async (companyId, isCompanyProfileCompleted, 
   }
 };
 
+const updateCompanyStatus = async (companyId, status, transaction) => {
+  try {
+    const Company = db.models.company;
+    const query = { id: companyId };
+    const body = { company_status: status };
+    const company = await commonService.updateData(Company, body, query, transaction);
+
+    if (!company || company[0] === 0) {
+      return {
+        error: true,
+        msgCode: "COMPANY_NOT_FOUND",
+        status: httpStatus.NOT_FOUND
+      };
+    }
+
+    return {
+      error: false,
+      msgCode: "COMPANY_STATUS_UPDATED",
+      data: { id: companyId, company_status: status },
+      status: httpStatus.OK
+    };
+  } catch (err) {
+    console.error("🚀 updateCompanyStatus error:", err);
+    return { error: true, msgCode: "COMPANY_STATUS_UPDATE_FAILED", status: httpStatus.INTERNAL_SERVER_ERROR };
+  }
+};
+
 const getCompanyList = async (queryParams) => {
   try {
     const Company = db.models.company;
@@ -437,6 +464,7 @@ module.exports = {
     deleteCompany,
     blockUnblockCompany,
     updateCompanyProfileStatus,
+    updateCompanyStatus,
     getCompanyList,
     createSubscriptionPlan,
     getSubscriptionList,

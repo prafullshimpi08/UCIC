@@ -285,6 +285,35 @@ const updateCompanyProfileStatus = async (req, res) => {
   }
 };
 
+const updateCompanyStatus = async (req, res) => {
+  const transaction = await db.transaction();
+  try {
+    const { companyId, companyStatus } = req.body;
+
+    if (!companyId) {
+      throw { msgCode: "COMPANY_ID_REQUIRED", status: 400 };
+    }
+    if (!companyStatus) {
+        throw { msgCode: "COMPANY_STATUS_REQUIRED", status: 400 };
+    }
+
+    const result = await companyService.updateCompanyStatus(companyId, companyStatus, transaction);
+
+    if (result.error) {
+      await transaction.rollback();
+      return response.error(req, res, { msgCode: result.msgCode, data: result.data }, result.status || 500);
+    }
+    await transaction.commit();
+
+    return response.success(req, res, { msgCode: result.msgCode, data: result.data }, result.status || 200);
+  } catch (err) {
+    // Ensure rollback is only called on an active transaction
+    if (transaction && !transaction.finished) await transaction.rollback();
+    console.error("UPDATE COMPANY STATUS ERROR >>>", err);
+    return response.error(req, res, { msgCode: err.msgCode || "COMPANY_STATUS_UPDATE_FAILED", data: err.data || null }, err.status || 500);
+  }
+};
+
 const getCompanyList = async (req, res) => {
   try {
     const result = await companyService.getCompanyList({ ...req.query, ...req.params });
@@ -316,5 +345,6 @@ module.exports = {
   deleteCompany,
   blockUnblockCompany,
   updateCompanyProfileStatus,
+  updateCompanyStatus,
   getCompanyList
 }

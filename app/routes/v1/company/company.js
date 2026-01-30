@@ -11,7 +11,8 @@
         updateCompany,
         deleteCompany,
         blockUnblockCompany,
-        updateProfileStatus
+        updateProfileStatus,
+        updateCompanyStatus
     } = require('../../../validations/companyValidation');
     const validate = require('../../../middleware/validate');
 
@@ -31,6 +32,7 @@
     router.post('/deleteCompany', validate(deleteCompany), companyController.deleteCompany);
     router.post('/blockUnblockCompany', validate(blockUnblockCompany), companyController.blockUnblockCompany);
     router.post('/updateCompanyProfileStatus', validate(updateProfileStatus), companyController.updateCompanyProfileStatus);
+    router.post('/changeCompanyStatus', validate(updateCompanyStatus), companyController.updateCompanyStatus);
     router.get('/getCompanyList', companyController.getCompanyList);
     // router.get('/getCompanyList/:id', companyController.getCompanyList);
 
