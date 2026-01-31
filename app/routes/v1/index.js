@@ -9,10 +9,12 @@ const app = require('express')();
 // app.use('/underwriter',require('./underwriter'))
 // app.use('/loan', require('./loan'));
 // app.use('/apply-loan', require('./common'));
-app.use('/crm', require('./crm/crm'));
+
 app.use('/company', require('./company/company'));
 app.use('/subscription', require('./company/subscription'));
 app.use('/auth', require('./authRoutes'));
+app.use('/ucic_manage', require('./company/ucic_manage'));
+
 
 
 module.exports = app
