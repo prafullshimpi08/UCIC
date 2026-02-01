@@ -329,6 +329,36 @@ const getCompanyList = async (req, res) => {
   }
 };
 
+const getTotalCompanyCount = async (req, res) => {
+  try {
+    const result = await companyService.getTotalCompanyCount();
+
+    if (result.error) {
+      return response.error(req, res, { msgCode: result.msgCode }, result.status || 500);
+    }
+
+    return response.success(req, res, { msgCode: result.msgCode, data: result.data }, result.status || 200);
+  } catch (err) {
+    console.error("GET TOTAL COMPANY COUNT ERROR >>>", err);
+    return response.error(req, res, { msgCode: "COMPANY_COUNT_FETCH_FAILED", data: err }, 500);
+  }
+};
+
+const getPendingCompanies = async (req, res) => {
+  try {
+    const result = await companyService.getPendingCompanies(req.query);
+
+    if (result.error) {
+      return response.error(req, res, { msgCode: result.msgCode }, result.status || 500);
+    }
+
+    return response.success(req, res, { msgCode: result.msgCode, data: result.data }, result.status || 200);
+  } catch (err) {
+    console.error("GET PENDING COMPANIES ERROR >>>", err);
+    return response.error(req, res, { msgCode: "PENDING_COMPANIES_FETCH_FAILED", data: err }, 500);
+  }
+};
+
 
 
 
@@ -346,5 +376,7 @@ module.exports = {
   blockUnblockCompany,
   updateCompanyProfileStatus,
   updateCompanyStatus,
-  getCompanyList
+  getCompanyList,
+  getTotalCompanyCount,
+  getPendingCompanies
 }

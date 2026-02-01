@@ -424,7 +424,7 @@ const getAssignedSubscriptionList = async (queryParams) => {
       throw new Error("company_subscription model not found");
     }
 
-    const list = await CompanySubscription.findAndCountAll({
+    const { count, rows } = await CompanySubscription.findAndCountAll({
       limit: parseInt(limit),
       offset,
       order: [["createdAt", "DESC"]],
@@ -439,13 +439,14 @@ const getAssignedSubscriptionList = async (queryParams) => {
           as: "subscriptionPlan",
           attributes: ["plan_name"]
         }
-      ]
+      ],
+      distinct: true
     });
 
     return {
       error: false,
       msgCode: "ASSIGNED_SUBSCRIPTION_LIST_FETCHED_SUCCESSFULLY",
-      data: list,
+      data: { count, rows },
       status: 200
     };
   } catch (error) {
@@ -455,6 +456,57 @@ const getAssignedSubscriptionList = async (queryParams) => {
       msgCode: "ASSIGNED_SUBSCRIPTION_LIST_FETCH_FAILED",
       status: 500
     };
+  }
+};
+
+const getTotalCompanyCount = async () => {
+  try {
+    const Company = db.models.company;
+    const count = await Company.count();
+    return {
+      error: false,
+      msgCode: "COMPANY_COUNT_FETCHED_SUCCESSFULLY",
+      data: { count },
+      status: httpStatus.OK
+    };
+  } catch (err) {
+    console.error("🚀 getTotalCompanyCount error:", err);
+    return { error: true, msgCode: "COMPANY_COUNT_FETCH_FAILED", status: httpStatus.INTERNAL_SERVER_ERROR };
+  }
+};
+
+const getPendingCompanies = async (queryParams) => {
+  try {
+    const Company = db.models.company;
+    const CompanyImage = db.models.company_image;
+    const { page = 1, limit = 10 } = queryParams;
+    const offset = (page - 1) * limit;
+
+    const includeOptions = [{
+      model: CompanyImage,
+      as: 'images',
+      attributes: ['id', 'image_url', 'image_type', 'public_id']
+    }];
+
+    const { count, rows } = await Company.findAndCountAll({
+      where: { company_status: 'pending' },
+      limit: parseInt(limit),
+      offset: offset,
+      order: [['createdAt', 'DESC']],
+      include: includeOptions,
+      distinct: true
+    });
+
+    console.log("Pending Companies - count:", count, "rows:", rows.length);
+    return {
+      error: false,
+      msgCode: "PENDING_COMPANIES_FETCHED_SUCCESSFULLY",
+      data: { count, rows },
+      status: httpStatus.OK
+    };
+  } catch (err) {
+    console.error("🚀 getPendingCompanies error:", err);
+    return { error: true, msgCode: "PENDING_COMPANIES_FETCH_FAILED", status: httpStatus.INTERNAL_SERVER_ERROR };
   }
 };
 
@@ -469,6 +521,7 @@ module.exports = {
     createSubscriptionPlan,
     getSubscriptionList,
     assignSubscriptionPlan,
-    getAssignedSubscriptionList
-
+    getAssignedSubscriptionList,
+    getTotalCompanyCount,
+    getPendingCompanies
 }

@@ -34,6 +34,9 @@
     router.post('/updateCompanyProfileStatus', validate(updateProfileStatus), companyController.updateCompanyProfileStatus);
     router.post('/changeCompanyStatus', validate(updateCompanyStatus), companyController.updateCompanyStatus);
     router.get('/getCompanyList', companyController.getCompanyList);
+    
+    router.get('/getTotalCompanyCount', companyController.getTotalCompanyCount);
+    router.get('/getPendingCompanies', companyController.getPendingCompanies);
     // router.get('/getCompanyList/:id', companyController.getCompanyList);
 
     module.exports = router;
