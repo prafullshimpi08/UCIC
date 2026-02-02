@@ -120,7 +120,14 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING,
         allowNull: false,
         defaultValue: "DRAFT"
+      },
+      customer_type: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        defaultValue: "Individual"
       }
+
+      
     },
     {
       tableName: "ucic_manage",

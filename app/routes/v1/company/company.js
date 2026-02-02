@@ -37,6 +37,8 @@
     
     router.get('/getTotalCompanyCount', companyController.getTotalCompanyCount);
     router.get('/getPendingCompanies', companyController.getPendingCompanies);
+
     // router.get('/getCompanyList/:id', companyController.getCompanyList);
+    // router.get('/ucic_list', companyController.getUcicList)
 
     module.exports = router;

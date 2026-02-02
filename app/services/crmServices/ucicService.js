@@ -55,6 +55,7 @@ const createUcic = async (body, transaction) => {
   registration_number: body.registration_number,
   pan_number: body.pan_number,
   gst_number: body.gst_number,
+  customer_type: body.customerType || "Individual",
   status: "DRAFT"
 };
 
@@ -172,7 +173,8 @@ const updateUcicBusiness = async (ucicId, body, transaction) => {
   employee_count: body.employee_count,
   bank_name: body.bank_name,
   account_number: body.account_number,
-  ifsc_code: body.ifsc_code
+  ifsc_code: body.ifsc_code,
+  // type: body.type
 };
 
     const condition = { id: ucicId };

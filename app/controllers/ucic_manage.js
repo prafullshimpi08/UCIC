@@ -6,38 +6,6 @@ const db = require('../models'); // <- pure db object
 const httpStatus = require('http-status');
 
 
-// const BasicInfo = async (req, res) => {
-//   const transaction = await db.transaction();
-//   try {
-//     const result = await ucicService.BasicInfo(req.body, req.data, transaction);
-
-//     if (result.error) throw result;
-
-//     await transaction.commit();
-
-//     return response.success(
-//   req,
-//   res,
-//   { msgCode: result.msgCode, data: result.data },
-//   result.status || 200 // <-- yaha default OK
-// );
-
-
-//   } catch (err) {
-//     await transaction.rollback();
-//     console.error('CREATE BASIC INFO ERROR >>>', err);
-
-//     return response.error(
-//   req,
-//   res,
-//   { msgCode: err.msgCode || "BASICINFO_UPDATE_FAILED", data: err.data || null },
-//   err.status || httpStatus.INTERNAL_SERVER_ERROR // <-- default 500
-// );
-
-//   }
-// };
-
-
 const createUcic = async (req, res) => {
   const transaction = await db.sequelize.transaction();
 

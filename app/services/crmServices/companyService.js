@@ -478,6 +478,7 @@ const getTotalCompanyCount = async () => {
 const getPendingCompanies = async (queryParams) => {
   try {
     const Company = db.models.company;
+    const SubscriptionPlan = db.models.subscription_plan;
     const CompanyImage = db.models.company_image;
     const { page = 1, limit = 10 } = queryParams;
     const offset = (page - 1) * limit;
@@ -497,11 +498,30 @@ const getPendingCompanies = async (queryParams) => {
       distinct: true
     });
 
+    const totalCompanies = await Company.count({
+  where: { deleted_at: null },
+  include: includeOptions,
+  distinct: true
+});
+
+const activeSubscription = await SubscriptionPlan.count({
+  where: { deleted_at: null },
+  distinct: true
+});
+
+
     console.log("Pending Companies - count:", count, "rows:", rows.length);
+   const countData =  
+   {
+     totalCompanies:totalCompanies,
+      pendingApprovals:count,
+      activeSubscription:activeSubscription,
+      revenueThisMonth:0
+    };
     return {
       error: false,
       msgCode: "PENDING_COMPANIES_FETCHED_SUCCESSFULLY",
-      data: { count, rows },
+      data: { countData, rows },
       status: httpStatus.OK
     };
   } catch (err) {
@@ -509,6 +529,9 @@ const getPendingCompanies = async (queryParams) => {
     return { error: true, msgCode: "PENDING_COMPANIES_FETCH_FAILED", status: httpStatus.INTERNAL_SERVER_ERROR };
   }
 };
+
+
+
 
 module.exports = {
     createCompany,
@@ -523,5 +546,5 @@ module.exports = {
     assignSubscriptionPlan,
     getAssignedSubscriptionList,
     getTotalCompanyCount,
-    getPendingCompanies
+    getPendingCompanies,
 }

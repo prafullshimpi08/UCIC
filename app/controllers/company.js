@@ -365,6 +365,7 @@ const getPendingCompanies = async (req, res) => {
 
 
 
+
 // console.log(db,"////////");
 
 module.exports = {
@@ -378,5 +379,5 @@ module.exports = {
   updateCompanyStatus,
   getCompanyList,
   getTotalCompanyCount,
-  getPendingCompanies
+  getPendingCompanies,
 }
