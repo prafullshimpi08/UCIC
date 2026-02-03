@@ -218,7 +218,7 @@ const getCompanyList = async (queryParams) => {
   try {
     const Company = db.models.company;
     const CompanyImage = db.models.company_image;
-    const { page = 1, limit = 10, search, id } = queryParams;
+    const { page = 1, limit = 10, search, id, company_status } = queryParams;
     const offset = (page - 1) * limit;
 
     const includeOptions = [{
@@ -249,6 +249,10 @@ const getCompanyList = async (queryParams) => {
           { email: { [Op.like]: `%${search}%` } }
         ]
       };
+    }
+
+    if (company_status) {
+      condition.company_status = company_status;
     }
 
     const order = [['createdAt', 'DESC']];
