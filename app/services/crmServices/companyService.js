@@ -479,6 +479,7 @@ const getTotalCompanyCount = async () => {
   }
 };
 
+
 const getPendingCompanies = async (queryParams) => {
   try {
     const Company = db.models.company;
