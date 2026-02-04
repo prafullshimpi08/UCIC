@@ -42,6 +42,25 @@ const listUcics = async (req, res) => {
   }
 };
 
+const getReviews = async (req, res) => {
+  try {
+    const reviews = await db.UcicRoles.findAll({
+      where: { kyc_flag: 'REVIEW' },
+      include: [
+        { model: db.UCICMaster, include: [
+          { model: db.IndividualMaster, as: 'individuals', include: [{ model: db.IndividualKYC, as: 'kycs' }] },
+          { model: db.NonIndividualMaster, as: 'nonIndividuals', include: [{ model: db.NonIndividualKYC, as: 'kycs' }] }
+        ]}
+      ]
+    });
+
+    return response.success(req, res, { msgCode: 'REVIEWS_FETCHED', data: reviews }, 200);
+  } catch (err) {
+    console.error('GET REVIEWS ERROR >>>', err);
+    return response.error(req, res, { msgCode: 'REVIEWS_FETCH_FAILED', data: err.message }, 500);
+  }
+};
+
 
 
 
@@ -54,4 +73,5 @@ const listUcics = async (req, res) => {
 
 module.exports = {
   listUcics,
+  getReviews
 }
