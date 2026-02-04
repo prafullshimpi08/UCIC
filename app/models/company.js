@@ -110,6 +110,15 @@ module.exports = (sequelize, DataTypes) => {
       company_status: {
         type: DataTypes.STRING,
         defaultValue: "Pending"
+      },
+        password: {
+        type: DataTypes.STRING,
+       allowNull: true
+     },
+
+      otp: {
+        type: DataTypes.STRING,
+        allowNull: true
       }
     },
     {

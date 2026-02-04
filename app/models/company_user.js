@@ -26,7 +26,16 @@ module.exports = (sequelize, DataTypes) => {
       phone_no: {
         type: DataTypes.STRING,
         allowNull: true
-      }
+      },
+        password: {
+        type: DataTypes.STRING,
+       allowNull: true
+     },
+
+      otp: {
+        type: DataTypes.STRING,
+        allowNull: true
+      },
     },
     {
       tableName: "company_user",

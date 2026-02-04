@@ -15,6 +15,9 @@ app.use('/subscription', require('./company/subscription'));
 app.use('/auth', require('./authRoutes'));
 app.use('/ucic_manage', require('./company/ucic_manage'));
 
+app.use('/ucic_new', require('./company/ucic_company'));
+
+
 
 
 module.exports = app
