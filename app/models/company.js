@@ -111,9 +111,13 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING,
         defaultValue: "Pending"
       },
+      subscription_plan_id: {
+        type: DataTypes.INTEGER,
+        allowNull: true
+      },
         password: {
         type: DataTypes.STRING,
-       allowNull: true
+        allowNull: true,
      },
 
       otp: {
@@ -133,6 +137,10 @@ module.exports = (sequelize, DataTypes) => {
     Company.hasMany(models.company_image, {
       foreignKey: "company_id",
       as: "images"
+    });
+    Company.belongsTo(models.subscription_plan, {
+      foreignKey: "subscription_plan_id",
+      as: "subscriptionPlan"
     });
   };
 

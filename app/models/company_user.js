@@ -29,13 +29,14 @@ module.exports = (sequelize, DataTypes) => {
       },
         password: {
         type: DataTypes.STRING,
-       allowNull: true
+       allowNull: true,
+       defaultValue: "12345"
      },
 
-      otp: {
-        type: DataTypes.STRING,
-        allowNull: true
-      },
+      // otp: {
+      //   type: DataTypes.STRING,
+      //   allowNull: true
+      // },
     },
     {
       tableName: "company_user",

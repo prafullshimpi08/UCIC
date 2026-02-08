@@ -2,6 +2,8 @@ const httpStatus = require('http-status');
 const response = require('../response');
 const db = require('../models').sequelize;
 const cloudinary = require('cloudinary').v2;
+const bcrypt = require('bcrypt');
+const SALT_ROUNDS = 10;
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -48,7 +50,7 @@ const updateCompanyContactDetails = async (req, res) => {
   try {
     const Company = db.models.company;
     const CompanyUser = db.models.company_user;
-    const { companyId, contactPersonName, email, phoneNo } = req.body;
+    const { companyId, contactPersonName, email, phoneNo, password } = req.body;
 
     if (!companyId) {
       throw { msgCode: "COMPANY_ID_REQUIRED", status: 400
@@ -61,11 +63,18 @@ const updateCompanyContactDetails = async (req, res) => {
       throw { msgCode: "COMPANY_NOT_FOUND", status: 404 };
     }
 
+    // Use provided password or a default password from env
+    const DEFAULT_PASSWORD = process.env.DEFAULT_COMPANY_PASSWORD || 'Password@123';
+    const passwordToUse = password && password.length ? password : DEFAULT_PASSWORD;
+    // Hash password
+    const hashedPassword = await bcrypt.hash(passwordToUse, SALT_ROUNDS);
+
     await company.update(
       {
         contact_person_name: contactPersonName,
         email: email,
-        phone_no: phoneNo
+        phone_no: phoneNo,
+        password: hashedPassword
       },
       { transaction }
     );
@@ -75,7 +84,8 @@ const updateCompanyContactDetails = async (req, res) => {
         company_id: companyId,
         contact_person_name: contactPersonName,
         email: email,
-        phone_no: phoneNo
+        phone_no: phoneNo,
+        password: hashedPassword
       },
       { transaction }
     );
